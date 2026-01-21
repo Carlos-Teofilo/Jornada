@@ -30,12 +30,11 @@ public class DepoimentoController : ControllerBase
                                         .OrderByDescending(x => x.Id)
                                         .Skip(page * pageSize)
                                         .Take(pageSize)
-                                        .Select(x => new DetailDepoimentoViewModel
+                                        .Select(x => new ListDepoimentoViewModel
                                         {
                                             Id = x.Id,
                                             Descricao = x.Descricao,
                                             Foto = x.Foto,
-                                            Usuario = $"{x.Usuario.Nome} ({x.Usuario.Email})"
                                         })
                                         .ToListAsync();
 
@@ -120,6 +119,7 @@ public class DepoimentoController : ControllerBase
         
         var depoimento = new Depoimento
         {
+            Id = 0,
             Descricao = model.Descricao,
             Foto = model.Foto,
         };
@@ -171,4 +171,24 @@ public class DepoimentoController : ControllerBase
             );
     }
 
+    [HttpGet("depoimentos-home")]
+    public async Task<IActionResult> GetDepoimentosHomeAsync(
+        [FromServices] JornadaDataContext context
+    )
+    {
+        var depoimentos = await context.Depoimentos
+                            .AsNoTracking()
+                            .OrderBy(x => Guid.NewGuid())
+                            .Take(3)
+                            .Select(x => new DetailDepoimentoViewModel
+                                    {
+                                        Id = x.Id,
+                                        Descricao = x.Descricao,
+                                        Foto = x.Foto,
+                                        Usuario = $"{x.Usuario.Nome} ({x.Usuario.Email})"
+                                    })
+                            .ToListAsync();
+        
+        return Ok(new ResultViewModel<List<DetailDepoimentoViewModel>>(depoimentos, null));
+    }
 }
