@@ -5,7 +5,6 @@ using Jornada.Data;
 using Jornada.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +18,13 @@ Configuration.JwtKey = builder.Configuration.GetValue<string>("JwtKey");
 
 var key = Encoding.ASCII.GetBytes(Configuration.JwtKey);
 
+builder.Services.AddCors(options => {
+    options.AddPolicy(name: "MyAllowSpecificOrigins",
+        policy =>
+        {
+            policy.WithOrigins("https://localhost");
+        });
+});
 builder.Services.AddAuthentication(x =>
 {
    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,11 +53,13 @@ builder.Services
     });
 
 var app = builder.Build();
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseCors("MyAllowSpecificOrigins");
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
+
 app.MapControllers();
 
 app.Run();
