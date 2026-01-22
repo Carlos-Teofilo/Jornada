@@ -13,11 +13,13 @@ public class JornadaDataContext : DbContext
     }
 
     public DbSet<Depoimento> Depoimentos { get; set; }
+    public DbSet<Destino> Destinos { get; set; }
     public DbSet<Usuario> Usuarios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UsuarioMap());
         modelBuilder.ApplyConfiguration(new DepoimentoMap());
+        modelBuilder.ApplyConfiguration(new DestinoMap());
     }
 }
