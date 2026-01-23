@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Jornada.Data;
 using Jornada.Extensions;
 using Jornada.Models;
@@ -15,13 +16,31 @@ public class DestinoController : ControllerBase
     [HttpGet("destinos")]
     public async Task<IActionResult> GetAsync(
         [FromServices] JornadaDataContext context,
+        [FromQuery] string? nome = "",
         [FromQuery] int page = 0,
         [FromQuery] int pageSize = 25
     )
     {
-        var total = await context.Destinos.CountAsync();
-        var destinos = await context.Destinos
-                            .AsNoTracking()
+
+        var query = context.Destinos.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(nome))
+            query = query.Where(x => x.Nome.Contains(nome));
+            
+        var total = await query.CountAsync();
+
+        if (total == 0)
+        {
+            return Ok(new ResultViewModel<dynamic>(new {
+                Destinos = new List<Destino>(),
+                total = 0,
+                page,
+                pageSize,
+                message = "Nenhum destino foi encontrado"
+            }, null));
+        }
+
+        var destinos = await query
                             .OrderByDescending(x => x.Id)
                             .Skip(page * pageSize)
                             .Take(pageSize)
@@ -100,15 +119,28 @@ public class DestinoController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<List<string>>(ModelState.GetErrors()));
         
-        var row = await context.Destinos
-                                .Where(x => x.Id == id)
-                                .ExecuteUpdateAsync(s => s
-                                    .SetProperty(p => p.Nome, p => model.Nome ?? p.Nome)
-                                    .SetProperty(p => p.Preco, p => model.Preco ?? p.Preco)
-                                    .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
-                                );
-        
-        return row != 0 ? NoContent() : NotFound();
+        try
+        {
+            var row = await context.Destinos
+                                    .Where(x => x.Id == id)
+                                    .ExecuteUpdateAsync(s => s
+                                        .SetProperty(p => p.Nome, p => model.Nome ?? p.Nome)
+                                        .SetProperty(p => p.Preco, p => model.Preco ?? p.Preco)
+                                        .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
+                                    );
+            
+            return row != 0 ? NoContent() : NotFound(
+                new ResultViewModel<string>("Destino não encontrado!")
+                );
+        }
+        catch (DbUpdateException)
+        {
+            return StatusCode(500, new ResultViewModel<string>("Não foi possível atualizar!"));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<string>("Erro interno no servidor!"));
+        }
     }
 
     [HttpDelete("destinos/{id:int}")]
@@ -120,12 +152,22 @@ public class DestinoController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<List<string>>(ModelState.GetErrors()));
         
-        var row = await context.Destinos
-                        .Where(x => x.Id == id)
-                        .ExecuteDeleteAsync();
-        
-        return row != 0 ? NoContent() : NotFound(
-            new ResultViewModel<string>("Destino não encontrado!")
-        );
+        try {
+            var row = await context.Destinos
+                            .Where(x => x.Id == id)
+                            .ExecuteDeleteAsync();
+            
+            return row != 0 ? NoContent() : NotFound(
+                new ResultViewModel<string>("Destino não encontrado!")
+                );
+        }
+        catch (DbException)
+        {
+            return StatusCode(500, new ResultViewModel<string>("Não foi possível deletar!"));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<string>("Erro interno no servidor!"));
+        }
     }
 }
