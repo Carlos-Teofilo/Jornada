@@ -63,21 +63,18 @@ public class DepoimentoController : ControllerBase
 
         var depoimento = await context.Depoimentos
                             .AsNoTracking()
-                            .Include(x => x.Usuario)
+                            .Select(detail => new DetailDepoimentoViewModel {
+                                Id = detail.Id,
+                                Descricao = detail.Descricao,
+                                Foto = detail.Foto,
+                                Usuario = $"{detail.Usuario.Nome} ({detail.Usuario.Email})"
+                                })
                             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (depoimento is null)
             return NotFound();
-        
-        var detail = new DetailDepoimentoViewModel
-            {
-                Id = depoimento.Id,
-                Descricao = depoimento.Descricao,
-                Foto = depoimento.Foto,
-                Usuario = $"{depoimento?.Usuario.Nome} ({depoimento?.Usuario.Email})"
-            };
 
-        return Ok(new ResultViewModel<DetailDepoimentoViewModel>(detail, null));
+        return Ok(new ResultViewModel<DetailDepoimentoViewModel>(depoimento, null));
     }
 
     [Authorize]
