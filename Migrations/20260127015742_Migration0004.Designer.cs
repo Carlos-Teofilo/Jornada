@@ -3,6 +3,7 @@ using Jornada.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jornada.Migrations
 {
     [DbContext(typeof(JornadaDataContext))]
-    partial class JornadaDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260127015742_Migration0004")]
+    partial class Migration0004
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,12 +61,10 @@ namespace Jornada.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Foto")
-                        .HasMaxLength(2000)
                         .HasColumnType("NVARCHAR")
                         .HasColumnName("Foto");
 
                     b.Property<string>("Foto2")
-                        .HasMaxLength(2000)
                         .HasColumnType("NVARCHAR")
                         .HasColumnName("Foto2");
 
@@ -83,7 +84,7 @@ namespace Jornada.Migrations
                         .HasColumnName("Preco");
 
                     b.Property<string>("TextoDescritivo")
-                        .HasColumnType("NVARCHAR(MAX)")
+                        .HasColumnType("NVARCHAR")
                         .HasColumnName("TextoDescritivo");
 
                     b.HasKey("Id");

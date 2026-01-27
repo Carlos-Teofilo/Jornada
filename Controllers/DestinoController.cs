@@ -90,14 +90,17 @@ public class DestinoController : ControllerBase
             Id = 0,
             Nome = model.Nome,
             Preco = model.Preco,
-            Foto = model.Foto
+            Foto = model.Foto,
+            Foto2 = model.Foto2,
+            Meta = model.Meta,
+            TextoDescritivo = model.TextoDescritivo
         };
 
         try
         {
             await context.Destinos.AddAsync(destino);
             await context.SaveChangesAsync();
-            return Created($"destinos/{destino.Id}", new ResultViewModel<Destino>(destino, null));
+            return Created($"api/v1/destinos/{destino.Id}", new ResultViewModel<Destino>(destino, null));
         }
         catch (DbUpdateException)
         {
@@ -127,6 +130,9 @@ public class DestinoController : ControllerBase
                                         .SetProperty(p => p.Nome, p => model.Nome ?? p.Nome)
                                         .SetProperty(p => p.Preco, p => model.Preco ?? p.Preco)
                                         .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
+                                        .SetProperty(p => p.Foto2, p => model.Foto2 ?? p.Foto2)
+                                        .SetProperty(p => p.Meta, p => model.Meta ?? p.Meta)
+                                        .SetProperty(p => p.TextoDescritivo, p => model.TextoDescritivo ?? p.TextoDescritivo)
                                     );
             
             return row != 0 ? NoContent() : NotFound(

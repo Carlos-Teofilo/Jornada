@@ -8,7 +8,10 @@ public class DestinoMap : IEntityTypeConfiguration<Destino>
 {
     public void Configure(EntityTypeBuilder<Destino> builder)
     {
-        builder.ToTable("Destino");
+        builder.ToTable(
+            "Destino",
+            x => x.HasCheckConstraint("CK_Preco_Greather_Than_Zero", "[Preco] > 0")
+            );
 
         builder.HasKey(x => x.Id);
 
@@ -30,9 +33,24 @@ public class DestinoMap : IEntityTypeConfiguration<Destino>
         builder.Property(x => x.Foto)
             .IsRequired(false)
             .HasColumnName("Foto")
-            .HasColumnType("NVARCHAR");
+            .HasColumnType("NVARCHAR")
+            .HasMaxLength(2000);
 
+        builder.Property(x => x.Foto2)
+            .IsRequired(false)
+            .HasColumnName("Foto2")
+            .HasColumnType("NVARCHAR")
+            .HasMaxLength(2000);
 
-        builder.ToTable(x => x.HasCheckConstraint("CK_Preco_Greather_Than_Zero", "[Preco] > 0"));
+        builder.Property(x => x.Meta)
+            .IsRequired(false)
+            .HasColumnName("Meta")
+            .HasColumnType("NVARCHAR")
+            .HasMaxLength(160);
+        
+        builder.Property(x => x.TextoDescritivo)
+            .IsRequired(false)
+            .HasColumnName("TextoDescritivo")
+            .HasColumnType("NVARCHAR(MAX)");
     }
 }
