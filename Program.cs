@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Jornada;
 using Jornada.Data;
+using Jornada.Repositories;
 using Jornada.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<JornadaDataContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddTransient<TokenService>();
+builder.Services.AddScoped<IDepoimentoRepository, DepoimentoRepository>();
+builder.Services.AddScoped<IDepoimentoService, DepoimentoService>();
 
 Configuration.JwtKey = builder.Configuration.GetValue<string>("JwtKey");
 

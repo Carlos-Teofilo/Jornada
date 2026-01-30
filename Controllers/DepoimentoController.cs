@@ -16,6 +16,10 @@ namespace Jornada.Controllers;
 [Route("api/v1")]
 public class DepoimentoController : ControllerBase
 {
+    private readonly IDepoimentoService _service;
+
+    public DepoimentoController(IDepoimentoService service) => _service = service;
+    
     [HttpGet("depoimentos")]
     public async Task<IActionResult> GetAsync(
         [FromServices] JornadaDataContext context,
@@ -113,29 +117,12 @@ public class DepoimentoController : ControllerBase
         
         if (usuario is null)
             return NotFound(new ResultViewModel<string>("Usuário não encontrado!"));
-        
-        var depoimento = new Depoimento
-        {
-            Id = 0,
-            Descricao = model.Descricao,
-            Foto = model.Foto,
-        };
 
-        depoimento.Usuario = usuario;
+        try{
+            var result = await _service.CreateAsync(usuario, model);
 
-        try
-        {
-            await context.Depoimentos.AddAsync(depoimento);
-            await context.SaveChangesAsync();
 
-            return Created($"depoimentos/{depoimento.Id}", new ResultViewModel<DetailDepoimentoViewModel>(
-                new DetailDepoimentoViewModel
-                {
-                    Id = depoimento.Id,
-                    Descricao = depoimento.Descricao,
-                    Foto = depoimento.Foto,
-                    Usuario = $"{usuario.Nome} ({usuario.Email})"
-                }, null));
+            return Created($"depoimentos/{result.Id}", new ResultViewModel<DetailDepoimentoViewModel>(result, null));
         }
         catch (DbUpdateException)
         {

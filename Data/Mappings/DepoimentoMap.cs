@@ -27,7 +27,7 @@ public class DepoimentoMap : IEntityTypeConfiguration<Depoimento>
 
         builder.Property(x => x.Foto)
             .HasColumnName("Foto")
-            .HasColumnType("NVARCHAR")
+            .HasColumnType("NVARCHAR(MAX)")
             .IsRequired(false);
 
         builder.HasOne(x => x.Usuario)
