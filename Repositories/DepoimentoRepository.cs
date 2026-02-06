@@ -1,7 +1,5 @@
-using System.Data.Common;
 using Jornada.Data;
 using Jornada.Models;
-using Jornada.ViewModels.Depoimentos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jornada.Repositories;
@@ -14,7 +12,6 @@ public class DepoimentoRepository : IDepoimentoRepository
 
     public async Task<Depoimento> CreateAsync(Depoimento depoimento)
     {
-
         try {
             await _context.Depoimentos.AddAsync(depoimento);
             await _context.SaveChangesAsync();
@@ -25,6 +22,7 @@ public class DepoimentoRepository : IDepoimentoRepository
             throw new Exception("Erro ao salvar o depoimento no banco de dados.", ex);
         }
     }
+    
     public async Task<bool> DeleteAsync(Usuario usuario, int id)
     {
         try
@@ -32,19 +30,20 @@ public class DepoimentoRepository : IDepoimentoRepository
             var row = await _context.Depoimentos
                         .Where(x => x.Id == id && x.Usuario.Id == usuario.Id)
                         .ExecuteDeleteAsync();
-            return row > 1;
+            return row > 0;
         }
         catch (Exception ex)
         {
-            throw new Exception("Erro ao deletar depoimento.", ex); 
+            throw new Exception("Erro ao deletar depoimento do banco de dados.", ex); 
         }
     }
 
-    public async Task<(List<Depoimento>, int Total)> GetAllAsync(int page = 0, int pageSize = 25)
+    public async Task<(List<Depoimento>, int Total)> GetAllAsync(int page, int pageSize)
     {
         var total = await _context.Depoimentos.CountAsync();
         var depoimentos = await _context.Depoimentos
                 .AsNoTracking()
+                .Include(x => x.Usuario)
                 .OrderByDescending(x => x.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -57,6 +56,7 @@ public class DepoimentoRepository : IDepoimentoRepository
     {
         var depoimento = await _context.Depoimentos
                 .AsNoTracking()
+                .Include(x => x.Usuario)
                 .FirstOrDefaultAsync(x => x.Id == id);
         
         return depoimento;
@@ -69,14 +69,26 @@ public class DepoimentoRepository : IDepoimentoRepository
                     .Where(x => x.Id == id && x.Usuario.Id == usuario.Id)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(p => p.Descricao, p => depoimento.Descricao ?? p.Descricao)
-                        .SetProperty(p => p.Foto, p => depoimento.Foto ?? p.Foto)
+                        // .SetProperty(p => p.Foto, p => depoimento.Foto ?? p.Foto)
                     );
             
-            return row > 1;
+            return row > 0;
         }
         catch (Exception ex)
         {
             throw new Exception("Erro ao atualizar depoimento", ex);
         }
+    }
+
+    public async Task<List<Depoimento>> GetRandom(int take)
+    {
+        var depoimentos = await _context.Depoimentos
+                .AsNoTracking()
+                .Include(x => x.Usuario)
+                .OrderBy(x => Guid.NewGuid())
+                .Take(take)
+                .ToListAsync();
+        
+        return depoimentos;
     }
 }

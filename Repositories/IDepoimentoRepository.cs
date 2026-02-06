@@ -10,4 +10,5 @@ public interface IDepoimentoRepository
     Task<Depoimento> CreateAsync(Depoimento depoimento);
     Task<bool> UpdateAsync(Usuario usuario, Depoimento depoimento, int id);
     Task<bool> DeleteAsync(Usuario usuario, int id);
+    Task<List<Depoimento>> GetRandom(int take);
 }

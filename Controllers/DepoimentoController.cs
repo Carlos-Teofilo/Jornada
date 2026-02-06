@@ -16,64 +16,38 @@ namespace Jornada.Controllers;
 [Route("api/v1")]
 public class DepoimentoController : ControllerBase
 {
-    private readonly IDepoimentoService _service;
+    private readonly IDepoimentoService _depoimentoService;
+    private readonly IUsuarioService _usuarioService;
+    private readonly ICriarDepoimentoService _criarDepoimentoService;
 
-    public DepoimentoController(IDepoimentoService service) => _service = service;
+    public DepoimentoController(
+        IDepoimentoService depoimentoService,
+        IUsuarioService usuarioService,
+        ICriarDepoimentoService criarDepoimentoService
+    )
+    {
+        _depoimentoService = depoimentoService;
+        _usuarioService = usuarioService;
+        _criarDepoimentoService = criarDepoimentoService;
+    }
     
     [HttpGet("depoimentos")]
     public async Task<IActionResult> GetAsync(
-        [FromServices] JornadaDataContext context,
         [FromQuery] int page = 0,
         [FromQuery] int pageSize = 25
     )
     {
-        try{
-            var total = await context.Depoimentos.CountAsync();
-            var depoimentos = await context.Depoimentos
-                                        .AsNoTracking()
-                                        .OrderByDescending(x => x.Id)
-                                        .Skip(page * pageSize)
-                                        .Take(pageSize)
-                                        .Select(x => new ListDepoimentoViewModel
-                                        {
-                                            Id = x.Id,
-                                            Descricao = x.Descricao,
-                                            Foto = x.Foto,
-                                        })
-                                        .ToListAsync();
+        var depoimentos = await _depoimentoService.GetAsync(page, pageSize);
 
-            return Ok(new ResultViewModel<dynamic>(new
-            {
-                Depoimentos = depoimentos,
-                total,
-                page,
-                pageSize
-            }, null));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new ResultViewModel<string>("Erro interno no servidor!"));
-        }
+        return Ok(new ResultViewModel<ListDepoimentoViewModel>(depoimentos, null));
     }
 
     [HttpGet("depoimentos/{id:int}")]
     public async Task<IActionResult> DetailAsync(
-        [FromRoute] int id,
-        [FromServices] JornadaDataContext context
+        [FromRoute] int id
     )
     {
-        if (!ModelState.IsValid)
-            return BadRequest(new ResultViewModel<List<string>>(ModelState.GetErrors()));
-
-        var depoimento = await context.Depoimentos
-                            .AsNoTracking()
-                            .Select(detail => new DetailDepoimentoViewModel {
-                                Id = detail.Id,
-                                Descricao = detail.Descricao,
-                                Foto = detail.Foto,
-                                Usuario = $"{detail.Usuario.Nome} ({detail.Usuario.Email})"
-                                })
-                            .FirstOrDefaultAsync(x => x.Id == id);
+        var depoimento = await _depoimentoService.GetByIdAsync(id);
 
         if (depoimento is null)
             return NotFound();
@@ -85,94 +59,81 @@ public class DepoimentoController : ControllerBase
     [HttpPut("depoimentos/{id:int}")]
     public async Task<IActionResult> PutAsync(
         [FromRoute] int id,
-        [FromBody] PutDepoimentoViewModel model,
-        [FromServices] JornadaDataContext context
+        [FromBody] PutDepoimentoViewModel model
     )
     {
-        var row = await context.Depoimentos
-            .Where(x => x.Id == id && x.Usuario.Email == User.Identity.Name)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(p => p.Descricao, p => model.Descricao ?? p.Descricao)
-                .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
-                );
-        
-        return row != 0 ? NoContent() : NotFound();
+        var email = User.Identity?.Name;
+
+        if (email is null)
+            return Unauthorized();
+
+        var usuario = await _usuarioService.GetByEmail(email);
+
+        if (usuario is null)
+            return Unauthorized();
+
+        return await _depoimentoService.UpdateAsync(usuario, model, id) ? NoContent() : NotFound();
     }
 
     [Authorize]
     [HttpPost("depoimentos")]
     public async Task<IActionResult> PostAsync(
-        [FromBody] PostDepoimentoViewModel model,
-        [FromServices] JornadaDataContext context
+        [FromBody] PostDepoimentoViewModel model
     )
     {
 
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<List<string>>(ModelState.GetErrors()));
+
         if (model is null)
             return BadRequest();
 
-        var usuario = await context.Usuarios
-                            .FirstOrDefaultAsync(x => x.Email == User.Identity.Name);
-        
+        var email = User.Identity?.Name;
+
+        if (email is null)
+            return Unauthorized();
+
+        var usuario = await _usuarioService.GetByEmail(email);
+
         if (usuario is null)
-            return NotFound(new ResultViewModel<string>("Usuário não encontrado!"));
+            return Unauthorized();
 
-        try{
-            var result = await _service.CreateAsync(usuario, model);
+        var result = await _criarDepoimentoService.ExecuteAsync(usuario, model);
 
-
-            return Created($"depoimentos/{result.Id}", new ResultViewModel<DetailDepoimentoViewModel>(result, null));
-        }
-        catch (DbUpdateException)
-        {
-            return StatusCode(500, new ResultViewModel<string>("05X11 - Não foi possível salvar o depoimento."));
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new ResultViewModel<string>("05X12 - Erro interno no servidor."));
-        }
+        return Created($"api/v1/depoimentos/{result.Id}", result);
     }
 
     [Authorize]
     [HttpDelete("depoimentos/{id:int}")]
     public async Task<IActionResult> DeleteAsync(
-        [FromRoute] int id,
-        [FromServices] JornadaDataContext context
+        [FromRoute] int id
     )
     {
         if (!ModelState.IsValid)
             return BadRequest();
-
-        var row = await context.Depoimentos
-                                    .Where(x =>
-                                    x.Id == id &&
-                                    x.Usuario.Email == User.Identity.Name
-                                    ).ExecuteDeleteAsync();
         
-        return row != 0 ? NoContent() : NotFound(
+        var email = User.Identity?.Name;
+
+        if (email is null)
+            return Unauthorized();
+
+        var usuario = await _usuarioService.GetByEmail(email);
+
+        if (usuario is null)
+            return Unauthorized();
+
+        return await _depoimentoService.DeleteAsync(usuario, id) ? NoContent() : NotFound(
             new ResultViewModel<string>("Depoimento não encontrado")
             );
     }
 
     [HttpGet("depoimentos-home")]
     public async Task<IActionResult> GetDepoimentosHomeAsync(
-        [FromServices] JornadaDataContext context
+        [FromQuery] int take
     )
     {
-        var depoimentos = await context.Depoimentos
-                            .AsNoTracking()
-                            .OrderBy(x => Guid.NewGuid())
-                            .Take(3)
-                            .Select(x => new DetailDepoimentoViewModel
-                                    {
-                                        Id = x.Id,
-                                        Descricao = x.Descricao,
-                                        Foto = x.Foto,
-                                        Usuario = $"{x.Usuario.Nome} ({x.Usuario.Email})"
-                                    })
-                            .ToListAsync();
+        var depoimentos = await _depoimentoService.GetRandom(take);
         
-        return Ok(new ResultViewModel<List<DetailDepoimentoViewModel>>(depoimentos, null));
+        return Ok(new ResultViewModel<ListDepoimentoViewModel>(depoimentos, null));
     }
 }

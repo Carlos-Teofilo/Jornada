@@ -13,9 +13,20 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<JornadaDataContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddTransient<TokenService>();
+
+// Repositories
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IDepoimentoRepository, DepoimentoRepository>();
+builder.Services.AddScoped<IFotoRepository, FotoRepository>();
+builder.Services.AddScoped<IDepoimentoFotoRepository, DepoimentoFotoRepository>();
+
+// Services
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IDepoimentoService, DepoimentoService>();
+builder.Services.AddScoped<ICriarDepoimentoService, CriarDepoimentoService>();
+
+// Outros
+builder.Services.AddTransient<TokenService>();
 
 Configuration.JwtKey = builder.Configuration.GetValue<string>("JwtKey");
 
@@ -28,6 +39,7 @@ builder.Services.AddCors(options => {
             policy.WithOrigins("https://localhost");
         });
 });
+
 builder.Services.AddAuthentication(x =>
 {
    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

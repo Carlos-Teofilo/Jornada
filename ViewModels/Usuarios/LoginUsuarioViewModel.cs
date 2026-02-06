@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Jornada.ViewModels;
+namespace Jornada.ViewModels.UsuarioViewModel;
 
 public class LoginUsuarioViewModel
 {

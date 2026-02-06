@@ -25,11 +25,6 @@ public class DepoimentoMap : IEntityTypeConfiguration<Depoimento>
             .HasMaxLength(1000)
             .IsRequired();
 
-        builder.Property(x => x.Foto)
-            .HasColumnName("Foto")
-            .HasColumnType("NVARCHAR(MAX)")
-            .IsRequired(false);
-
         builder.HasOne(x => x.Usuario)
             .WithMany(x => x.Depoimentos)
             .HasConstraintName("FK_Depoimento_Usuario")

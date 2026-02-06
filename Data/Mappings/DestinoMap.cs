@@ -30,18 +30,6 @@ public class DestinoMap : IEntityTypeConfiguration<Destino>
             .HasColumnName("Preco")
             .HasColumnType("INT");
 
-        builder.Property(x => x.Foto)
-            .IsRequired(false)
-            .HasColumnName("Foto")
-            .HasColumnType("NVARCHAR")
-            .HasMaxLength(2000);
-
-        builder.Property(x => x.Foto2)
-            .IsRequired(false)
-            .HasColumnName("Foto2")
-            .HasColumnType("NVARCHAR")
-            .HasMaxLength(2000);
-
         builder.Property(x => x.Meta)
             .IsRequired(false)
             .HasColumnName("Meta")

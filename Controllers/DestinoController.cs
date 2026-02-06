@@ -90,8 +90,8 @@ public class DestinoController : ControllerBase
             Id = 0,
             Nome = model.Nome,
             Preco = model.Preco,
-            Foto = model.Foto,
-            Foto2 = model.Foto2,
+            // Foto = model.Foto,
+            // Foto2 = model.Foto2,
             Meta = model.Meta,
             TextoDescritivo = model.TextoDescritivo
         };
@@ -129,8 +129,8 @@ public class DestinoController : ControllerBase
                                     .ExecuteUpdateAsync(s => s
                                         .SetProperty(p => p.Nome, p => model.Nome ?? p.Nome)
                                         .SetProperty(p => p.Preco, p => model.Preco ?? p.Preco)
-                                        .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
-                                        .SetProperty(p => p.Foto2, p => model.Foto2 ?? p.Foto2)
+                                        // .SetProperty(p => p.Foto, p => model.Foto ?? p.Foto)
+                                        // .SetProperty(p => p.Foto2, p => model.Foto2 ?? p.Foto2)
                                         .SetProperty(p => p.Meta, p => model.Meta ?? p.Meta)
                                         .SetProperty(p => p.TextoDescritivo, p => model.TextoDescritivo ?? p.TextoDescritivo)
                                     );

@@ -3,6 +3,7 @@ using Jornada.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Jornada.Migrations
 {
     [DbContext(typeof(JornadaDataContext))]
-    partial class JornadaDataContextModelSnapshot : ModelSnapshot
+    [Migration("20260201195605_Migration0007")]
+    partial class Migration0007
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,7 +127,7 @@ namespace Jornada.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Fotos");
+                    b.ToTable("Foto");
                 });
 
             modelBuilder.Entity("Jornada.Models.Role", b =>
@@ -220,7 +223,7 @@ namespace Jornada.Migrations
                     b.HasOne("Jornada.Models.Foto", "Foto")
                         .WithMany("DepoimentoFotos")
                         .HasForeignKey("FotoId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Depoimento");
@@ -239,7 +242,7 @@ namespace Jornada.Migrations
                     b.HasOne("Jornada.Models.Foto", "Foto")
                         .WithMany("DestinoFotos")
                         .HasForeignKey("FotoId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Destino");
