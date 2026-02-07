@@ -62,12 +62,15 @@ public class DepoimentoController : ControllerBase
         [FromBody] PutDepoimentoViewModel model
     )
     {
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<List<string>>(ModelState.GetErrors()));
+
         var email = User.Identity?.Name;
 
         if (email is null)
             return Unauthorized();
 
-        var usuario = await _usuarioService.GetByEmail(email);
+        var usuario = await GetLoggedUserAsync();
 
         if (usuario is null)
             return Unauthorized();
@@ -93,7 +96,7 @@ public class DepoimentoController : ControllerBase
         if (email is null)
             return Unauthorized();
 
-        var usuario = await _usuarioService.GetByEmail(email);
+        var usuario = await GetLoggedUserAsync();
 
         if (usuario is null)
             return Unauthorized();
@@ -117,7 +120,7 @@ public class DepoimentoController : ControllerBase
         if (email is null)
             return Unauthorized();
 
-        var usuario = await _usuarioService.GetByEmail(email);
+        var usuario = await GetLoggedUserAsync();
 
         if (usuario is null)
             return Unauthorized();
@@ -135,5 +138,12 @@ public class DepoimentoController : ControllerBase
         var depoimentos = await _depoimentoService.GetRandom(take);
         
         return Ok(new ResultViewModel<ListDepoimentoViewModel>(depoimentos, null));
+    }
+
+    private async Task<Usuario?> GetLoggedUserAsync()
+    {
+        var email = User.Identity?.Name;
+        if (string.IsNullOrEmpty(email)) return null;
+        return await _usuarioService.GetByEmail(email);
     }
 }
