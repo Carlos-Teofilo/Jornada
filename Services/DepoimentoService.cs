@@ -31,7 +31,7 @@ public class DepoimentoService : IDepoimentoService
         }
         catch (Exception ex)
         {
-            throw new Exception("", ex);
+            throw new Exception("Erro ao criar depoimento.", ex);
         }
     }
     public async Task<bool> DeleteAsync(Usuario usuario, int id) => await _repository.DeleteAsync(usuario, id);
@@ -43,6 +43,7 @@ public class DepoimentoService : IDepoimentoService
         {
             Id = x.Id,
             Descricao = x.Descricao,
+            Fotos = x.DepoimentoFotos.Select(x => x.Foto.Url).ToList(),
             Usuario = x.Usuario != null 
                         ? $"{x.Usuario.Nome} - ({x.Usuario.Email})" 
                         : "Usuário desconhecido"
@@ -68,7 +69,7 @@ public class DepoimentoService : IDepoimentoService
         {
             Id = depoimento.Id,
             Descricao = depoimento.Descricao,
-            // Foto = depoimento.Foto,
+            Fotos = depoimento.DepoimentoFotos.Select(x => x.Foto.Url).ToList(),
             Usuario = depoimento.Usuario != null 
                         ? $"{depoimento.Usuario.Nome} - ({depoimento.Usuario.Email})" 
                         : "Usuário desconhecido"
@@ -97,12 +98,13 @@ public class DepoimentoService : IDepoimentoService
                     Id = x.Id,
                     Descricao = x.Descricao,
                 }).ToList();
+        var total = depoimentosViewModel.Count();
                 
         
         return new ListDepoimentoViewModel
         {
             Depoimentos = depoimentosViewModel,
-            Total = take
+            Total = total
         };
     }
 }

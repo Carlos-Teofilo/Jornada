@@ -44,6 +44,8 @@ public class DepoimentoRepository : IDepoimentoRepository
         var depoimentos = await _context.Depoimentos
                 .AsNoTracking()
                 .Include(x => x.Usuario)
+                .Include(x => x.DepoimentoFotos)
+                    .ThenInclude(x => x.Foto)
                 .OrderByDescending(x => x.Id)
                 .Skip(page * pageSize)
                 .Take(pageSize)
@@ -69,7 +71,6 @@ public class DepoimentoRepository : IDepoimentoRepository
                     .Where(x => x.Id == id && x.Usuario.Id == usuario.Id)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(p => p.Descricao, p => depoimento.Descricao ?? p.Descricao)
-                        // .SetProperty(p => p.Foto, p => depoimento.Foto ?? p.Foto)
                     );
             
             return row > 0;
